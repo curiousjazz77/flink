@@ -1,128 +1,79 @@
 package part1recap
 
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Try, Success, Failure}
+import java.time.Instant
+import java.util.UUID
 
+/**
+ * A package describing events related to a multiplayer game.
+ * We analyze some essential Flink features based on these data types.
+ */
 object ScalaRecap {
 
-  // value
   val aBoolean: Boolean = false
   var aVariable: Int = 56
   aVariable += 1
 
-  // expressions
+  //expresion
   val anIfExpression: String = if (2 > 3) "bigger" else "smaller"
 
-  // instructions vs expressions
-  val theUnit: Unit = println("Hello, Scala") // Unit === "void"
+  //instructions
+  val theUnit: Unit = println("Hello, Scala") //Unit == void
 
-  // OOP
+  //OOP
   class Animal
   class Cat extends Animal
-  trait Carnivore {
-    def eat(animal: Animal): Unit
+  trait Carnivore { //interface; dont need to define implementation; only methods
+    def eat(animal: Animal)
   }
+  //abstract classes also exist.
 
-  // inheritance: extends <= 1 class, but inherit from >= 0 traits
-  class Crocodile extends Animal with Carnivore {
+  class Crocodile extends Animal with Carnivore{
     override def eat(animal: Animal): Unit = println("eating this poor fellow")
   }
 
-  // singleton
+  //singleton object; useful when want to create messages for actors like we see
+  // in the akka essentials course
   object MySingleton
 
-  // companions
+  //companions
   object Carnivore
 
-  // case classes
-  case class Person(name: String, age: Int)
+  //case classes
+  case class Person(name:String, age:Int)
 
-  // generics
-  class MyList[A] // can add variance modifiers - not important for this course
+  //generics
+  class MyList[A] // can add variance modifiers; quite complicated and not important for this course
 
-  // method notation
-  // croc.eat(animal) OR croc eat animal
-  val three = 1 + 2
-  val three_v2 = 1.+(2)
+  //method notation
+  //croc.eat(animal) OR croc eat animal
+  val three = 1 + 2 //method in infix notation
+  val three_v2 = 1.+(2) //same as above but method notation
 
-  // FP
+  //functional programming - functions as first class elements of our code; we can pass around functions,
+  // modify them and return a result just like any other values
   val incrementer: Int => Int = x => x + 1
-  val incremented = incrementer(4) // 5, same as incrementer.apply(4)
+  val incremented = incrementer(4) //returns 5
+  //incrementer invoked with argument four is same as incrementar.apply(4)
+  incrementer.apply(4)
 
-  // map flatMap filter = HOFs
-  val processedList = List(1,2,3).map(incrementer) // [2,3,4]
-  val aLongerList = List(1,2,3).flatMap(x => List(x, x + 1)) // [1,2, 2,3, 3,4]
+  //functions used quite a lot in scala; map, flatmap, filter; often used on collections
+  //higher order functions
+  val processed_list = List(1, 2, 3).map(incrementer) //each one will be incremented
+  val aLongerList = List(1,2,3).flatMap(x => List(x, x+1)) //[1,2, 2,3, 3,4]
 
-  // for-comprehensions
-  val checkerboard = List(1,2,3).flatMap(n => List('a', 'b', 'c').map(c => (n, c)))
+  //for comprehensions
+  //if want to do crossproduct of list of 3 numbers and 3 characters
+  val checkerboard = List(1,2,3).flatMap(n => List('a','b', 'c').map(c => (n,c)))
+
   val checkerboard_v2 = for {
     n <- List(1,2,3)
     c <- List('a', 'b', 'c')
-  } yield (n, c) // same
+  } yield (n,c) //same
 
-  // options and try
-  val anOption: Option[Int] = Option(/* something that might be null*/ 43)
-  val doubleOption = anOption.map(_ * 2)
+  //options and try -> to manage the absence of values or the potential that a computation may fail
+  val anOption: Option[Int] = Option(/*something that might be null*/ 43)
+  val doubleOption = anOption.map(_*2) //shorthand for x => x * 2
 
-  val anAttempt: Try[Int] = Try(12)
-  val modifiedAttempt = anAttempt.map(_ * 10)
-
-  // pattern matching
-  val anUnknown: Any = 45
-  val medal = anUnknown match {
-    case 1 => "gold"
-    case 2 => "silver"
-    case 3 => "bronze"
-    case _ => "no medal"
-  }
-
-  val optionDescription = anOption match {
-    case Some(value) => s"the option is not empty: $value"
-    case None => "the option is empty"
-  }
-
-  // Futures
-  implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(8))
-  val aFuture = Future(/* something to be evaluated on another thread*/ 1 + 41)
-
-  // register callback when it finishes
-  aFuture.onComplete {
-    case Success(value) => println(s"the async meaning of life is $value")
-    case Failure(exception) => println(s"the meaning of value failed: $exception")
-  }
-
-  val aPartialFunction: PartialFunction[Try[Int], Unit] = {
-    case Success(value) => println(s"the async meaning of life is $value")
-    case Failure(exception) => println(s"the meaning of value failed: $exception")
-  }
-
-  // map, flatMap, filter, ...
-  val doubledAsyncMOL: Future[Int] = aFuture.map(_ * 2)
-
-  // implicits
-
-  // 1 - implicit arguments and values
-  implicit val timeout: Int = 3000 // implicit val == given instance
-  def setTimeout(f: () => Unit)(implicit tout: Int) = { // (using tout: Int)
-    Thread.sleep(tout)
-    f()
-  }
-
-  setTimeout(() => println("timeout")) // (timeout)
-
-  // 2 - extension methods
-  implicit class MyRichInt(number: Int) { // implicit class = extension
-    def isEven: Boolean = number % 2 == 0
-  }
-
-  val is2Even = 2.isEven // new RichInt(2).isEven
-
-  // 3 - conversions
-  implicit def string2Person(name: String): Person =
-    Person(name, 57)
-
-  val daniel: Person = "Daniel" // string2Person("Daniel")
 
   def main(args: Array[String]): Unit = {
 
